@@ -1,0 +1,11 @@
+name: arcade_sprite_ext
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.9
+  - pytest=6.2
+  - pylint=2.12
+  - black=22.3.0
+  - pip:
+    - arcade==2.6.10
