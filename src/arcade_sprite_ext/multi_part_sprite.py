@@ -64,9 +64,15 @@ class MultiPartSprite(arcade.Sprite):
             name (str): Name to assign the sub sprite.
             sub_sprite (arcade.Sprite): The sprite to add.
             offset (coords.Coords): The offset from the original sprite.
+        Raises:
+            KeyError: If the sub-sprite already exists.
         """
+        if name in self._sub_sprites:
+            raise KeyError(f"{name} already exists as a sub sprite of {self}.")
         self._sub_sprites[name] = sub_sprite
-        sub_sprite.set_position(self.center_x+offset.x_coord,self.center_y+offset.y_coord)
+        sub_sprite.set_position(
+            self.center_x + offset.x_coord, self.center_y + offset.y_coord
+        )
 
     def remove_sub_sprite(self, name: str) -> None:
         """
@@ -76,8 +82,54 @@ class MultiPartSprite(arcade.Sprite):
             name (str): Name of the sub sprite to remove.
 
         Raises:
-            ValueError: If the name does not match a sub sprite.
+            KeyError: If the name does not match a sub sprite.
         """
         if name not in self._sub_sprites:
-            raise ValueError(f"{name} is not the name of a sub sprite.")
+            raise KeyError(f"{name} not a sub sprite of {self}.")
         self._sub_sprites.pop(name).remove_from_sprite_lists()
+
+    def get_sub_sprite(self, name: str) -> arcade.Sprite:
+        """
+        Get a sub sprite by name.
+
+        Args:
+            name (str): Name of the sub sprite
+
+        Raises:
+            KeyError: If the sub-sprite does not exist
+
+        Returns:
+            arcade.Sprite: The sub-sprite associated with the given name.
+        """
+        if not name in self._sub_sprites:
+            raise KeyError(f"{name} not a sub sprite of {self}.")
+        return self._sub_sprites[name]
+
+    def get_all_sprites(self) -> list[arcade.Sprite]:
+        """
+        Get the sprite and all its sub-sprites (including recursively).
+
+        Returns:
+            list[arcade.Sprite]: List of all the sub-sprites.
+        """
+        all_sprites: list[arcade.Sprite] = [self]
+
+        for _, sprite in self._sub_sprites.items():
+            if isinstance(sprite, MultiPartSprite):
+                all_sprites += sprite.get_all_sprites()
+            else:
+                all_sprites.append(sprite)
+
+        return all_sprites
+
+    def sub_sprite_exists(self, name: str) -> bool:
+        """
+        Check if a sub sprite with the given name exists.
+
+        Args:
+            name (str): Name of the sub sprite.
+
+        Returns:
+            bool: Whether the sub sprite exists.
+        """
+        return name in self._sub_sprites
