@@ -1,8 +1,17 @@
 """Classes for handling multi-part sprites, derived from arcade.Sprite"""
+from dataclasses import dataclass
 from typing import Optional
 import arcade
 
-from . import coords
+from arcade_sprite_ext import coords
+
+
+@dataclass
+class _SubSprite:
+    """Dataclass for information about sub sprites"""
+
+    sprite: arcade.Sprite
+    offset: coords.Coords
 
 
 class MultiPartSprite(arcade.Sprite):
@@ -46,16 +55,32 @@ class MultiPartSprite(arcade.Sprite):
             angle=angle,
         )
 
-        self._sub_sprites: dict[str, arcade.Sprite] = {}
+        self._sub_sprites: dict[str, _SubSprite] = {}
+
+    def set_position(self, center_x: float, center_y: float) -> None:
+        super().set_position(center_x, center_y)
+        for _, sub_sprite in self._sub_sprites.items():
+            sub_sprite.sprite.set_position(
+                self.center_x + sub_sprite.offset.x_coord,
+                self.center_y + sub_sprite.offset.y_coord,
+            )
+
+    def register_sprite_list(self, new_list: arcade.SpriteList) -> None:
+        super().register_sprite_list(new_list)
+        for _, sub_sprite in self._sub_sprites.items():
+            new_list.append(sub_sprite.sprite)
 
     def remove_from_sprite_lists(self) -> None:
         super().remove_from_sprite_lists()
 
-        for _, sprite in self._sub_sprites.items():
-            sprite.remove_from_sprite_lists()
+        for _, subsprite in self._sub_sprites.items():
+            subsprite.sprite.remove_from_sprite_lists()
 
     def add_sub_sprite(
-        self, name: str, sub_sprite: arcade.Sprite, offset: coords.Coords
+        self,
+        name: str,
+        sprite: arcade.Sprite,
+        offset: Optional[coords.Coords] = None,
     ) -> None:
         """
         Add a sub sprite to the sprite, with a specified offset.
@@ -67,12 +92,17 @@ class MultiPartSprite(arcade.Sprite):
         Raises:
             KeyError: If the sub-sprite already exists.
         """
+        if offset is None:
+            offset = coords.Coords(0, 0)
         if name in self._sub_sprites:
             raise KeyError(f"{name} already exists as a sub sprite of {self}.")
-        self._sub_sprites[name] = sub_sprite
-        sub_sprite.set_position(
+        new_sub_sprite = _SubSprite(sprite, offset)
+        self._sub_sprites[name] = new_sub_sprite
+        sprite.set_position(
             self.center_x + offset.x_coord, self.center_y + offset.y_coord
         )
+        for sprite_list in self.sprite_lists:
+            sprite_list.append(sprite)
 
     def remove_sub_sprite(self, name: str) -> None:
         """
@@ -86,7 +116,7 @@ class MultiPartSprite(arcade.Sprite):
         """
         if name not in self._sub_sprites:
             raise KeyError(f"{name} not a sub sprite of {self}.")
-        self._sub_sprites.pop(name).remove_from_sprite_lists()
+        self._sub_sprites.pop(name).sprite.remove_from_sprite_lists()
 
     def get_sub_sprite(self, name: str) -> arcade.Sprite:
         """
@@ -103,7 +133,7 @@ class MultiPartSprite(arcade.Sprite):
         """
         if not name in self._sub_sprites:
             raise KeyError(f"{name} not a sub sprite of {self}.")
-        return self._sub_sprites[name]
+        return self._sub_sprites[name].sprite
 
     def get_all_sprites(self) -> list[arcade.Sprite]:
         """
@@ -114,11 +144,11 @@ class MultiPartSprite(arcade.Sprite):
         """
         all_sprites: list[arcade.Sprite] = [self]
 
-        for _, sprite in self._sub_sprites.items():
-            if isinstance(sprite, MultiPartSprite):
-                all_sprites += sprite.get_all_sprites()
+        for _, sub_sprite in self._sub_sprites.items():
+            if isinstance(sub_sprite, MultiPartSprite):
+                all_sprites += sub_sprite.get_all_sprites()
             else:
-                all_sprites.append(sprite)
+                all_sprites.append(sub_sprite.sprite)
 
         return all_sprites
 
