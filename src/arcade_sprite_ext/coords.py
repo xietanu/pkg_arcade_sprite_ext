@@ -13,3 +13,8 @@ class Coords:
         if not isinstance(other, Coords):
             raise ValueError("Cannot add Coords to non-Coords")
         return Coords(self.x_coord + other.x_coord, self.y_coord + other.y_coord)
+
+    def __sub__(self, other):
+        if not isinstance(other, Coords):
+            raise ValueError("Cannot subtract Coords to non-Coords")
+        return Coords(self.x_coord - other.x_coord, self.y_coord - other.y_coord)
