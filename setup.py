@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="arcade_sprite_ext",
-    version="0.4.1-alpha",
+    version="0.4.2-alpha",
     author="Matt Sutton",
     author_email="sutton.matt.p@gmail.com",
     description="A python package extending the functionality of sprites in the arcade package.",
