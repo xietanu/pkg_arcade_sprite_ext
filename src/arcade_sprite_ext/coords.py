@@ -32,9 +32,9 @@ class Coords:
         )
 
     def euclidean_distance_squared_to(self, other: "Coords") -> int:
-        """Return the squared distance between the coordinates.
+        """Return the squared Euclidean distance between the coordinates.
 
-        Faster than calculating the euclidean distance.
+        Faster than calculating the Euclidean distance.
 
         Parameters
         ----------
@@ -50,7 +50,7 @@ class Coords:
         return difference.x_coord ^ 2 + difference.y_coord ^ 2 + difference.z_coord ^ 2
 
     def euclidean_distance_to(self, other: "Coords") -> float:
-        """Return the squared distance between the coordinates.
+        """Return the Euclidean distance between the coordinates.
 
         Parameters
         ----------
